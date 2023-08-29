@@ -1,6 +1,6 @@
-#HR Analytics | 2nd Personal Project
+# HR Analytics | 2nd Personal Project
 
-##INTRODUCTION
+## INTRODUCTION
 
 In this 2nd analytics project, I use RStudio to explore HR dataset and aim to answer these following business questions:
 
@@ -9,10 +9,10 @@ In this 2nd analytics project, I use RStudio to explore HR dataset and aim to an
 3. Analysing employee attrition: What do resignees look like? Why did they leave? Can we predict their tenure length?
 4. Attrition probabilities: By using random forest, how accurate can we predict whether a particular employee leaves or stays?
 
-##DATASET
+## DATASET
 Public dataset can be downloaded on:
 https://d-i-motion.com/lessons/people-analytics-1/
 Special thanks to Data in Motion, LLC for giving out this great sample dataset to explore!
 
-##TABLE OF CONTENTS
+## TABLE OF CONTENTS
 
