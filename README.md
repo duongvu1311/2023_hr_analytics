@@ -16,5 +16,5 @@ Special thanks to Data in Motion, LLC for giving out this great sample dataset t
 
 ## TABLE OF CONTENTS
 
-[1. Data Overview and Evaluating DE&I metrics] (https://github.com/duongvu1311/2023_hr_analytics/blob/main/Gender%20and%20Race%20pay%20gap.Rmd)
-[2. Pay Compression and Salary prediction] (https://github.com/duongvu1311/2023_hr_analytics/blob/main/Pay%20Compression.Rmd)
+[1. Data Overview and Evaluating DE&I metrics](https://github.com/duongvu1311/2023_hr_analytics/blob/main/Gender%20and%20Race%20pay%20gap.Rmd)
+[2. Pay Compression and Salary prediction](https://github.com/duongvu1311/2023_hr_analytics/blob/main/Pay%20Compression.Rmd)
