@@ -1,0 +1,177 @@
+---
+title: "Part 1 - Evaluating DE&I metrics"
+author: "Duong Vu"
+date: "2023-09-06"
+output: html_document
+---
+
+## DATA OVERVIEW
+
+Firstly, import the original dataset into R and see what it has.
+
+```{r}
+#Load tidyverse package
+install.packages(“tidyverse”)
+library(tidyverse)
+
+#Import our data file in csv format and name it as ‘newdf’
+newdf <- read_csv(“people_analytics_start.csv”)
+```
+
+Then get an overview of our dataset.
+
+```{r}
+#View the data and check the number of rows & columns
+View(newdf)
+dim(newdf)
+
+#Check out all variable names
+names(newdf)
+```
+
+## KEY FINDINGS AND RECOMMENDATIONS
+
+## 1a) Gender pay gap
+
+**Do we have any Gender salary gap? Or in other words, do Females have lower salary than Males?**
+
+Firstly, let's look at the overall avg_salary among different genders.
+
+```{r}
+newdf %>% 
+  group_by(gender) %>% 
+  summarise(avg_salary = mean(salary), count=n())
+```
+
+Oh no, males are getting paid higher than Females (and also have more Male employees). 'Other' has the highest avg_salary, however, there are only 2 employees in this category, so I will remove these to easily compare the differences between Males & Females.
+
+Now, let's run statistical test to see whether Males are indeed paid higher than Females.
+
+```{r}
+#Filter out 'Other' in gender
+malefemale <- newdf %>% 
+  filter(gender != "Other")
+
+#Testing whether males have higher avg_salary than females
+t.test(salary ~ gender, data = malefemale) 
+```
+
+p-value = 0.0016, hence, Males are paid significantly higher than Females in general.
+
+However, we also need to take job_level into account, as higher job_level will be paid higher.
+
+Check avg_salary by gender & job_level:
+
+```{r}
+#Check avg_salary and total number of employees by gender & job level
+malefemale %>% 
+  group_by(job_level, gender) %>% 
+  summarize(avg_salary = mean(salary), count = n())
+```
+
+Wow, there are only Males in Director level? And for Manager level, Males are paid higher and have almost double the number of females.. However, Individual Contributor and Team Lead level, females are paid a little bit higher.
+
+Now, let's visualize this so we can easily see the difference..
+
+```{r}
+library(ggplot2)
+#Visualize Avg salary by gender & job level
+malefemale %>% 
+  group_by(job_level, gender) %>% 
+  summarise(avg_salary = round(mean(salary))) %>% 
+  ggplot(aes(gender, avg_salary, fill=gender))+
+  geom_col()+
+  geom_text(aes(label = avg_salary), size=3.5, vjust=-0.5)+
+  facet_wrap(~job_level)+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  labs(title = "Average salary by gender and job level")
+```
+
+After visualizing, it looks like the salary differences between Males & Females are not that significant when job_level is considered. Now, let's run multiple regression to examine that hypothesis.
+
+```{r}
+lm(salary ~ gender + job_level, data=malefemale) %>% 
+  summary()
+```
+
+Tada! **Gender isn't a significant predictor to salary after all when we consider job_level.**
+
+Another way to look at this is to visualize in boxplot and split into different departments.
+
+```{r}
+#visualize in Boxplots, excl 'Other'
+malefemale %>% 
+  ggplot(aes(department,salary))+
+  geom_boxplot(alpha=0.5,aes(color=gender))+
+  theme(
+    axis.text.x = element_text(size = 6, angle = 20)) +
+  facet_wrap(~job_level)+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  labs(title="Gender pay difference across departments and job levels")
+```
+
+The median salary for Males & Females varies in each department. For example, female managers in HR and Marketing are paid lower than their counterparts, while in other departments, females are paid much higher (esp in R&D, Product Development).
+
+## 1b) Race pay gap
+
+Using the same steps above, let's check whether any race is being underpaid.
+
+```{r}
+#overall avg_salary by race
+newdf %>% 
+  group_by(race) %>% 
+  summarise(avg_salary = mean(salary), count=n()) %>% 
+  arrange(-avg_salary)
+```
+
+Most of the employees are Caucasian. Asian has the highest avg_salary, followed by Caucasian. Meanwhile, African American and Hispanic have the lowest avg_salary.
+
+Now, let's take job_level into account! Here, I will skip to the visualization part so we can easily see the difference.
+
+```{r}
+newdf %>% 
+  group_by(job_level, race) %>% 
+  summarise(avg_salary = round(mean(salary)), count=n()) %>% 
+  ggplot(aes(race, avg_salary))+
+  geom_col(fill="brown", alpha=0.7)+
+  facet_wrap(~job_level)+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+```
+
+**WOW, there is no African American (AA) and Hispanic in Director level!** Moreover, compared to other races, AA are paid significantly low in all other job levels.
+
+The boxplot below also shows this inequality..
+
+```{r}
+newdf %>% 
+  ggplot(aes(race, salary))+
+  geom_boxplot()+
+  facet_wrap(~job_level)+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+```
+
+We can easily see that **AA are paid so low, esp in Manager level!** Now, let's run regression to see if race is still significant predictor to salary when we control job_level.
+
+```{r}
+lm(salary ~ race + job_level, data=newdf) %>% 
+  summary()
+```
+
+YES! **Race and Job_level are both significant predictors to salary.** And these two variables together can explain 25% of the variability in salary.
+
+## CONCLUSION & RECOMMENDATIONS
+
+After examining pay gap for both gender and race, we can conclude that **this company lacks DE&I in this area as there are no females, AA and Hispanic in Director level**. Moreover, **AA are paid significantly low in Manager, Team Lead, and Individual Contributor levels.** The majority of the employees being Caucasian and Males also shows that **the company is not much diverse and inclusive**. However, the good thing is that **the company does not have gender pay gap** as most males and females are paid equally when we consider job level factor.
+
+Hence, here are **some recommended actions** to improve DE&I so that organization can have better and more innovative workforce:
+
+1.  Put Females, AA/Hispanic in Director level by either promoting high-performing employees at Manager level or hiring externally.
+
+2.  Adjust the salary range for AA so that they won't be so underpaid compared to their counterparts at the same job level.
+
+3.  Promote to have new hires that are more diverse in races (AA, Hispanic, Native American, Other) and genders (Female, Other)
