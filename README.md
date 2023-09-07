@@ -2,7 +2,7 @@
 
 ## INTRODUCTION
 
-In this 2nd analytics project, I use RStudio to explore HR dataset and aim to answer these following business questions:
+In this 2nd analytics project, I use **RStudio** to explore HR dataset and aim to answer these following business questions:
 
 1. DE&I metrics: Do we have any Gender or Race salary gap?
 2. Pay compression: Are new hires paid higher than current employees? Can we predict salary based on education and other demographical factors?
