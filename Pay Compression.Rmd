@@ -1,0 +1,84 @@
+---
+title: "Part 2 - Pay Compression"
+author: "Duong Vu"
+date: "2023-09-06"
+output: html_document
+---
+
+In this second part of my personal HR Analytics project, I will explore whether the new hires in this organization are paid higher than the current ones. In fact, there is a term for this issue --Pay Compression. This problem is quite common in many organizations and can easily lead to pay dissatisfaction and higher turnover.
+
+## Question 2a) Are new hires paid higher than our current employees?
+
+In order to check this, firstly, we need to classify the new hires from our dataset.
+
+```{r}
+#Load tidyverse package
+library(tidyverse)
+#Load lubridate package to extract year from hire_date  
+library(lubridate)
+```
+
+Then, we find out our most recent hire year.
+
+```{r}
+#What is the most recent hire year? Total number of hires each year?
+newdf %>% 
+  mutate(hire_year = year(hire_date)) %>% 
+  count(hire_year) %>% 
+  View()
+```
+
+So 2021 is our most recent hire year. Let's assume all employees who were hired in 2021 are new hires.
+
+```{r}
+#Label the new_hire accordingly: all who were hired in 2021 are new hires
+new_hire <- newdf %>% 
+  select(employee_id, department, job_level, salary, hire_date) %>% 
+  mutate(new_hire = ifelse(year(newdf$hire_date) == 2021, "new hire", "current")) 
+```
+
+```{r}
+#Then check the avg_salary difference between new hires and current employees
+new_hire %>% 
+  group_by(new_hire) %>% 
+  summarize(avg_salary = mean(salary), count=n())
+```
+
+So new hires's avg_salary is slightly higher than current employees. Let's use T-test to see whether this difference is significant.
+
+```{r}
+#Testing whether this difference is significant
+t.test(salary ~ new_hire, data=new_hire) 
+```
+
+p-value = 0.14 so in general, **new hires are NOT paid significantly higher than current employees**.
+
+Another definition of pay compression is that new hires on lower job level have higher salary than the current employees who are on higher job level. Now, let's take job level into account to see if this problem happens.
+
+```{r}
+new_hire %>% 
+  group_by(job_level, new_hire) %>% 
+  summarize(avg_salary = mean(salary), count=n()) %>% 
+  arrange(-avg_salary)
+```
+
+Alright, good news! We can see that **new hires in lower job level still have lower avg_salary than the current employees at higher job level.** Hence, based on what we found above, we can conclude that **this company does NOT have pay compression issue**, as the avg_salary differences between new hires and current employees are not significant.
+
+## Question 2b). Can we predict salary based on education and other demographical factors?
+
+This is another question that I'm keen to explore since we are discussing salary here. To answer this question, we can use linear regression to see among demographic factors (i.e. age, race, gender), education, job level, and location (On-site or Remote), which are the significant predictors to salary?
+
+```{r}
+#Multiple linear regression model
+lm(salary ~ age + race + gender + job_level + education + location,
+   data=newdf) %>% 
+  summary()
+```
+
+So, our significant predictors are: **Race and Job level**, which are all significant at 99.9% confidence level. While interestingly, **Age, Gender, Education, and Location are not significant at all**. Moreover, all these predictors can simultaneously explain 25.5% of the variability in Salary (R-squared = 0.2548) , and this model is statistically significant (p-value < 2.2e-16).
+
+Or in simpler words, Race and Job level are the top two factors that affect the employees' salary in this organization.
+
+## Conclusion
+
+*In this second part, we can conclude that the new hires in this organization are not paid significantly higher than current employees. However, the offered salary still depends a lot on Races, which is in line with what we found in part 1 where the company has significant race pay gap. Therefore, it is highly recommended that company should improve their pay structure to ensure equal salary among different races.*
